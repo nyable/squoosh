@@ -20,13 +20,17 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Serve using Nginx
-FROM nginx:alpine
+FROM nginx:alpine-slim
 
 # Remove default nginx static assets
 RUN rm -rf /usr/share/nginx/html/*
 
 # Copy build artifacts from builder stage (the build script moves output to 'build' folder)
 COPY --from=builder /app/build /usr/share/nginx/html
+
+# Clean up unnecessary files to reduce image size
+RUN find /usr/share/nginx/html -name "*.map" -type f -delete && \
+    find /usr/share/nginx/html -name "*.d.ts" -type f -delete
 
 # Copy custom nginx config
 COPY nginx.conf /etc/nginx/conf.d/default.conf
